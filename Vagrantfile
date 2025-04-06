@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
       vb.memory = "1024"
     end
   
-    # Intasll Docker in the VM
+    # Instalação de dependências para exercícios
     config.vm.provision "shell", inline: <<-SHELL
       apt-get update
       apt-get install apt-transport-https ca-certificates curl software-properties-common -y
@@ -21,6 +21,8 @@ Vagrant.configure("2") do |config|
       sleep 2
       apt-get update
       apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+      echo "Instalando LIBs para Jail"
+      apt-get install gcc seccomp-tools -y 
     SHELL
 
     #
