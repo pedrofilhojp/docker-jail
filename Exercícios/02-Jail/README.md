@@ -19,9 +19,10 @@ sudo mkdir -p /jail/{bin,lib64,lib/x86_64-linux-gnu,dev,etc,home,usr,proc}
 ### 1.2 Copie binários essenciais para dentro da jail:
 
 ```bash
-sudo cp /bin/bash /jail/bin/
-sudo cp /bin/ls /jail/bin/
-sudo cp /bin/cat /jail/bin/
+cd /
+sudo cp /bin/bash ./jail/bin/
+sudo cp /bin/ls ./jail/bin/
+sudo cp /bin/cat ./jail/bin/
 ```
 
 ### 1.3 Copie as bibliotecas necessárias (verifique com ldd):
@@ -34,30 +35,30 @@ ldd /bin/cat
 
 ### Exemplo de cópia:
 ```bash
-sudo cp /lib/x86_64-linux-gnu/{libtinfo.so.6,libc.so.6}  /jail/lib/x86_64-linux-gnu/
-sudo cp /lib64/ld-linux-x86-64.so.2 /jail/lib64/
+sudo cp /lib/x86_64-linux-gnu/{libtinfo.so.6,libc.so.6}  ./jail/lib/x86_64-linux-gnu/
+sudo cp /lib64/ld-linux-x86-64.so.2 ./jail/lib64/
 ```
 
 
 ### 1.4 Crie dispositivos básicos:
 
 ```bash
-sudo mknod -m 666 /jail/dev/null c 1 3
-sudo mknod -m 666 /jail/dev/zero c 1 5
+sudo mknod -m 666 ./jail/dev/null c 1 3
+sudo mknod -m 666 ./jail/dev/zero c 1 5
 ```
 ### 1.5 Copie arquivos de configuração mínimos:
 
 ```bash
-sudo cp /etc/passwd /jail/etc/
-sudo cp /etc/group /jail/etc/
+sudo cp /etc/passwd ./jail/etc/
+sudo cp /etc/group ./jail/etc/
 ```
 
 
 # 🚪 Parte 2 – Acessando o Ambiente com chroot
 ```bash
-sudo chroot /jail
+sudo chroot ./jail
 ou
-sudo chroot /jail /bin/bash
+sudo chroot ./jail /bin/bash
 ```
 Dentro da jail, execute comandos como ls, whoami e cat /etc/passwd para testar o ambiente.
 
@@ -74,24 +75,24 @@ Antes de iniciar, vamos copiar mais 1 programa (ps) para dentro do chroot e mape
 
 ### 3.1.1 Monte o sistema de arquivos /proc na jail:
 ```bash
-sudo mount --bind /proc /jail/proc
+sudo mount --bind /proc ./jail/proc
 ```
 ### 3.1.2 Copie binários essenciais para dentro da jail:
 
 ```bash
-sudo cp /usr/bin/ps /jail/bin/
+sudo cp /usr/bin/ps ./jail/bin/
 ```
 ### 3.1.3 Copie as bibliotecas necessárias (verifique com ldd):
 
 ```bash
 ldd /usr/bin/ps
 
-cp /lib/x86_64-linux-gnu/{libprocps.so.8,libc.so.6,libsystemd.so.0,liblzma.so.5,libzstd.so.1,liblz4.so.1,libcap.so.2,libgcrypt.so.20,libgpg-error.so.0} /jail/lib/x86_64-linux-gnu/
+cp /lib/x86_64-linux-gnu/{libprocps.so.8,libc.so.6,libsystemd.so.0,liblzma.so.5,libzstd.so.1,liblz4.so.1,libcap.so.2,libgcrypt.so.20,libgpg-error.so.0} ./jail/lib/x86_64-linux-gnu/
 ```
 
 ### 3.1.4 Acesse o chroot, execute o htop
 ```bash
-sudo chroot /jail /bin/bash
+sudo chroot ./jail /bin/bash
 
 ps aux
 ```
@@ -104,9 +105,9 @@ O comando unshare permite que você execute processos em namespaces isolados, cr
 
 ### ✅ Execute o seguinte comando para isolar totalmente a jail:
 ```bash
-sudo unshare -p -f --mount-proc=/jail/proc chroot jail
+sudo unshare -p -f --mount-proc=./jail/proc chroot jail
 ou
-sudo unshare --mount --mount-proc=/jail/proc --uts --ipc --net --pid --fork --user --map-root-user chroot /jail /bin/bash
+sudo unshare --mount --mount-proc=./jail/proc --uts --ipc --net --pid --fork --user --map-root-user chroot jail /bin/bash
 ```
 **Explicação das opções:**
 
@@ -160,11 +161,11 @@ int main() {
 ## 4.3 Compile e copie para a jail:
 ```bash
 gcc seccomp_jail.c -o seccomp_jail -lseccomp
-sudo cp seccomp_jail /jail/bin/
+sudo cp seccomp_jail ./bin/
 ```
 ## 4.4 Execute com chroot:
 ```bash
-sudo chroot /jail /bin/seccomp_jail
+sudo chroot ./jail /bin/seccomp_jail
 ```
 ## 🧠 Teste: 
 Tente rodar comandos simples. A jail permitirá somente os que utilizam syscalls permitidas. Qualquer tentativa de uso de chamadas não permitidas causará o encerramento do processo.
