@@ -10,6 +10,7 @@ Vagrant.configure("2") do |config|
     config.vm.provider "virtualbox" do |vb|
       vb.gui = false
       vb.memory = "1024"
+      vb.cpus = 2
     end
   
     # Instalação de dependências para exercícios
@@ -21,8 +22,10 @@ Vagrant.configure("2") do |config|
       sleep 2
       apt-get update
       apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+      adduser vagrant docker
       echo "Instalando LIBs para Jail"
-      apt-get install gcc seccomp-tools -y 
+      apt-get install stress
+      apt-get install gcc seccomp -y 
     SHELL
 
     #

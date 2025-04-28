@@ -55,6 +55,8 @@ Podemos testar a API listando os containers ativos:
 
 ```bash
 curl --unix-socket /var/run/docker.sock http://localhost/containers/json
+
+curl --unix-socket /var/run/docker.sock http://localhost/containers/json | jq '.[].Names'
 ```
 
 Isso retornará um JSON com a lista de containers em execução.

@@ -12,7 +12,7 @@ O propósito é entender como ambientes seguros e isolados podem ser criados sem
 ### 1.1 Crie a estrutura de diretórios da jail:
 
 ```bash
-sudo mkdir -p /jail/{bin,lib64,dev,etc,home,usr,proc}
+sudo mkdir -p /jail/{bin,lib64,lib/x86_64-linux-gnu,dev,etc,home,usr,proc}
 ```
 
 
@@ -34,7 +34,8 @@ ldd /bin/cat
 
 ### Exemplo de cópia:
 ```bash
-sudo cp /lib64/{ld-linux-x86-64.so.2,libc.so.6,libtinfo.so.6} /jail/lib64/
+sudo cp /lib/x86_64-linux-gnu/{libtinfo.so.6,libc.so.6}  /jail/lib/x86_64-linux-gnu/
+sudo cp /lib64/ld-linux-x86-64.so.2 /jail/lib64/
 ```
 
 
@@ -51,42 +52,81 @@ sudo cp /etc/passwd /jail/etc/
 sudo cp /etc/group /jail/etc/
 ```
 
-1.6 Monte o sistema de arquivos /proc na jail:
-```bash
-sudo mount --bind /proc /jail/proc
-```
 
-🚪 Parte 2 – Acessando o Ambiente com chroot
+# 🚪 Parte 2 – Acessando o Ambiente com chroot
 ```bash
+sudo chroot /jail
+ou
 sudo chroot /jail /bin/bash
 ```
 Dentro da jail, execute comandos como ls, whoami e cat /etc/passwd para testar o ambiente.
 
 Para sair da jail, digite exit, e depois desmonte o /proc:
 ```bash
+exit
+```
+
+# 🔐 Parte 3 – NameSpaces Linux - Isolamento Avançado com unshare
+
+## 3.1. Mapeamento do programa ps
+
+Antes de iniciar, vamos copiar mais 1 programa (ps) para dentro do chroot e mapear o /proc 
+
+### 3.1.1 Monte o sistema de arquivos /proc na jail:
+```bash
+sudo mount --bind /proc /jail/proc
+```
+### 3.1.2 Copie binários essenciais para dentro da jail:
+
+```bash
+sudo cp /usr/bin/ps /jail/bin/
+```
+### 3.1.3 Copie as bibliotecas necessárias (verifique com ldd):
+
+```bash
+ldd /usr/bin/ps
+
+cp /lib/x86_64-linux-gnu/{libprocps.so.8,libc.so.6,libsystemd.so.0,liblzma.so.5,libzstd.so.1,liblz4.so.1,libcap.so.2,libgcrypt.so.20,libgpg-error.so.0} /jail/lib/x86_64-linux-gnu/
+```
+
+### 3.1.4 Acesse o chroot, execute o htop
+```bash
+sudo chroot /jail /bin/bash
+
+htop
+```
+Observe que todos os processos estão sendo exibidos. Não há isolamento dos processo do sistema com o chroot
+
+
+## 3.2. O que é unshare?
+O comando unshare permite que você execute processos em namespaces isolados, criando ambientes com visibilidade limitada de processos, rede, montagem, etc. É uma tecnologia base para containers.
+
+### 3.2.1. Desmontando o /proc
+Precisamos desmontar o /proc, pois ele será montado a partir do **unshare**
+```bash
 sudo umount /jail/proc
 ```
 
-# 🔐 Parte 3 – Isolamento Avançado com unshare
-## 📘 O que é unshare?
-O comando unshare permite que você execute processos em namespaces isolados, criando ambientes com visibilidade limitada de processos, rede, montagem, etc. É uma tecnologia base para containers.
 
-## ✅ Execute o seguinte comando para isolar totalmente a jail:
+### ✅ Execute o seguinte comando para isolar totalmente a jail:
 ```bash
-sudo unshare --mount --uts --ipc --net --pid --fork --user --map-root-user chroot /jail /bin/bash
+sudo unshare -p -f --mount-proc=/jail/proc chroot jail
+ou
+sudo unshare --mount --mount-proc=/jail/proc --uts --ipc --net --pid --fork --user --map-root-user chroot /jail /bin/bash
 ```
 **Explicação das opções:**
 
-- mount: isola pontos de montagem.
-- uts: isola nome do host (hostname).
-- ipc: isola comunicação entre processos.
-- net: isola a rede.
-- pid: isola processos.
-- user: cria novo namespace de usuários.
-- map-root-user: permite agir como root dentro da jail.
-- fork: força o processo a rodar isolado.
+- **--mount**: isola pontos de montagem.
+- **--uts**: isola nome do host (hostname).
+- **--ipc**: isola comunicação entre processos.
+- **--net**: isola a rede.
+- **--pid**: isola processos.
+- **--user**: cria novo namespace de usuários.
+- **--map-root-user**: permite agir como root dentro da jail.
+- **--fork**: força o processo a rodar isolado.
 
-## 🧠 Teste: dentro da jail, use ps aux e verifique que os processos do host não aparecem.
+## 🧠 Teste: 
+Dentro da jail, use ps aux e verifique que os processos do host não aparecem.
 
 # 🛡️ Parte 4 – Restrição de Syscalls com seccomp
 ##📘 O que é seccomp?
