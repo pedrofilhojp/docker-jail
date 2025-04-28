@@ -93,19 +93,13 @@ cp /lib/x86_64-linux-gnu/{libprocps.so.8,libc.so.6,libsystemd.so.0,liblzma.so.5,
 ```bash
 sudo chroot /jail /bin/bash
 
-htop
+ps aux
 ```
 Observe que todos os processos estão sendo exibidos. Não há isolamento dos processo do sistema com o chroot
 
 
 ## 3.2. O que é unshare?
 O comando unshare permite que você execute processos em namespaces isolados, criando ambientes com visibilidade limitada de processos, rede, montagem, etc. É uma tecnologia base para containers.
-
-### 3.2.1. Desmontando o /proc
-Precisamos desmontar o /proc, pois ele será montado a partir do **unshare**
-```bash
-sudo umount /jail/proc
-```
 
 
 ### ✅ Execute o seguinte comando para isolar totalmente a jail:
