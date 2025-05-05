@@ -1,4 +1,4 @@
-# 🧪 Exercício Prático: Criação de Jail no Linux com `chroot`, `unshare` e `seccomp`
+# 🧪 Exercício Prático: Criação de Jail no Linux com `chroot` e `unshare`
 
 ## 📘 Objetivo
 
@@ -73,26 +73,26 @@ exit
 
 Antes de iniciar, vamos copiar mais 1 programa (ps) para dentro do chroot e mapear o /proc 
 
-### 3.1.1 Copie binários essenciais para dentro da jail:
+***Copie binários essenciais para dentro da jail:***
 
 ```bash
 sudo cp /usr/bin/ps ./jail/bin/
 ```
-### 3.1.2 Copie as bibliotecas necessárias (verifique com ldd):
+***Copie as bibliotecas necessárias (verifique com ldd):***
 
 ```bash
 ldd /usr/bin/ps
 
-cp /lib/x86_64-linux-gnu/{libprocps.so.8,libc.so.6,libsystemd.so.0,liblzma.so.5,libzstd.so.1,liblz4.so.1,libcap.so.2,libgcrypt.so.20,libgpg-error.so.0} ./jail/lib/x86_64-linux-gnu/
+sudo cp /lib/x86_64-linux-gnu/{libprocps.so.8,libc.so.6,libsystemd.so.0,liblzma.so.5,libzstd.so.1,liblz4.so.1,libcap.so.2,libgcrypt.so.20,libgpg-error.so.0} ./jail/lib/x86_64-linux-gnu/
 ```
 
-### 3.1.3 Monte o sistema de arquivos /proc na jail:
+***Monte o sistema de arquivos /proc na jail:***
 ```bash
 sudo mount --bind /proc ./jail/proc
 ```
 
 
-### 3.1.4 Acesse o chroot, execute o htop
+***Acesse o chroot, execute o htop***
 ```bash
 sudo chroot ./jail /bin/bash
 
@@ -125,49 +125,4 @@ sudo unshare --mount --mount-proc=./jail/proc --uts --ipc --net --pid --fork --u
 ## 🧠 Teste: 
 Dentro da jail, use ps aux e verifique que os processos do host não aparecem.
 
-# 🛡️ Parte 4 – Restrição de Syscalls com seccomp
-##📘 O que é seccomp?
-seccomp (Secure Computing Mode) é um recurso do kernel Linux que permite restringir as chamadas de sistema (syscalls) que um processo pode executar. Ele é muito utilizado para aumentar a segurança de containers e aplicações sandbox.
 
-## 4.1 Instale a biblioteca libseccomp e ferramentas:
-```bash
-sudo apt install libseccomp-dev seccomp-tools
-```
-## 4.2 Crie o código seccomp_jail.c:
-```C
-#define _GNU_SOURCE
-#include <seccomp.h>
-#include <stdio.h>
-#include <unistd.h>
-
-int main() {
-    scmp_filter_ctx ctx;
-
-    ctx = seccomp_init(SCMP_ACT_KILL); // Bloqueia tudo por padrão
-
-    // Permitir algumas chamadas seguras
-    seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0);
-    seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 0);
-    seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit), 0);
-    seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(fstat), 0);
-
-    seccomp_load(ctx);
-
-    printf("Seccomp ativado! Chamadas restritas.\n");
-
-    execl("/bin/bash", "bash", NULL);
-
-    return 0;
-}
-```
-## 4.3 Compile e copie para a jail:
-```bash
-gcc seccomp_jail.c -o seccomp_jail -lseccomp
-sudo cp seccomp_jail ./bin/
-```
-## 4.4 Execute com chroot:
-```bash
-sudo chroot ./jail /bin/seccomp_jail
-```
-## 🧠 Teste: 
-Tente rodar comandos simples. A jail permitirá somente os que utilizam syscalls permitidas. Qualquer tentativa de uso de chamadas não permitidas causará o encerramento do processo.
