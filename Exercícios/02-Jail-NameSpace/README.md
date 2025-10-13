@@ -137,7 +137,7 @@ Esse tipo de ligação é realizado com interface do tipo **veth**. Ela funciona
   <img src="image.png" alt="Network simples do container" width="400">
 </p>
 
-1. Inicialize o jail com namespace de network, observe que tem apenas a interface de **loopback**
+1 - Inicialize o jail com namespace de network, observe que tem apenas a interface de **loopback**
 
 Obs. É necessário colocar dentro do `jail` o programa `ip`
 ```bash
@@ -145,15 +145,15 @@ sudo unshare -p -f -n --mount-proc=./jail/proc chroot jail
 ip a
 ```
 
-2. Em outro terminal, vamos cria a veth pair
+2 - Em outro terminal, vamos cria a veth pair
 ```bash
 ip link add veth-host type veth peer name veth-jail
 ```
 Agora temos um par de interfaces:
 
-`veth-host` <==> `veth-jail`
+- `veth-host` <==> `veth-jail`
 
-3. Coloca veth-jail no namespace do PID do jail
+3 - Coloca veth-jail no namespace do PID do jail
 
 Busque o PID do processo do jail com `ps aux` coloque-o na variável PID
 
@@ -164,13 +164,13 @@ ip link set veth-jail netns $PID
 ```
 No terminal do jail, executer `ip  a` e você verá a interface veth_jail lá dentro
 
-4. Configura host
+4 - Configura host
 ```bash
 ip addr add 192.168.100.1/24 dev veth-host
 ip link set veth-host up
 ```
 
-5. Configura dentro do jail
+5 - Configura dentro do jail
 ```bash
 nsenter -t $PID -n ip addr add 192.168.100.2/24 dev veth-jail
 nsenter -t $PID -n ip link set veth-jail up
@@ -186,13 +186,13 @@ Este modelo é semelhante a network do docker, para cada network criada o docker
 
 
 Para configuração, repita todos os passos passado e depois:
-1. Crie uma bridge
+1 - Crie uma bridge
 ```bash
 sudo ip link add name br-test type bridge
 sudo ip link set br-test up
 ```
 
-2. Adicione a interface do lado do host (veth-ns1) à bridge
+2 - Adicione a interface do lado do host (veth-ns1) à bridge
 ```bash
 sudo ip link set veth-ns1 master br-test
 ```
@@ -205,3 +205,12 @@ Lembrando que para isso, retiraremos o IP da interface veth-ns1, e colocamos na 
 <p align="center">
   <img src="image-1.png" alt="Diagrama de comunicação 2 containers na bridge" width="300">
 </p>
+
+
+Ainda falta mais uma coisinha para permitir essa comunicação entre os containers... 
+No docker, é criado algumas regras de firewall para que as interfaces veth ligadas à bridge possam se comunicar, aqui faremos diferente. Vamos subir um módulo específico do kernel, e permitir essa transferência de dados entre as interfaces.
+
+```bash
+modprobe br_netfilter
+sysctl -w net.bridge.bridge-nf-call-iptables=1
+```
