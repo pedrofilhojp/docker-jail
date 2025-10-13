@@ -133,7 +133,9 @@ Esse tipo de ligação é realizado com interface do tipo **veth**. Ela funciona
 
 ## Opção 01: Ligação direta do container com o host
 
-![alt text](image.png)
+<p align="center">
+  <img src="image.png" alt="Network simples do container" width="400">
+</p>
 
 1. Inicialize o jail com namespace de network, observe que tem apenas a interface de **loopback**
 
@@ -178,7 +180,10 @@ nsenter -t $PID -n ip link set lo up
 ## Outra opção 02: Ligando o container com uma brigde
 Este modelo é semelhante a network do docker, para cada network criada o docker criar uma bridge, que tem nome de docker0, por padrão ela vem com ip 172.17.0.0/16, igual a figura abaixo.
 
-![alt text](image-2.png){width=100px}
+<p align="center">
+  <img src="image-2.png" alt="Diagrama de comunicação container bridge" width="300">
+</p>
+
 
 Para configuração, repita todos os passos passado e depois:
 1. Crie uma bridge
@@ -196,4 +201,7 @@ Desta forma, a bridge atua como um switch, permitindo que outros container que e
 
 Lembrando que para isso, retiraremos o IP da interface veth-ns1, e colocamos na interface da Bridge.
 
-![alt text](image-1.png)
+
+<p align="center">
+  <img src="image-1.png" alt="Diagrama de comunicação 2 containers na bridge" width="300">
+</p>
