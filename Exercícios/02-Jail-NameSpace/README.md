@@ -178,7 +178,7 @@ nsenter -t $PID -n ip link set lo up
 ## Outra opção 02: Ligando o container com uma brigde
 Este modelo é semelhante a network do docker, para cada network criada o docker criar uma bridge, que tem nome de docker0, por padrão ela vem com ip 172.17.0.0/16, igual a figura abaixo.
 
-![alt text](image-2.png)
+![alt text](image-2.png){width=100px}
 
 Para configuração, repita todos os passos passado e depois:
 1. Crie uma bridge
