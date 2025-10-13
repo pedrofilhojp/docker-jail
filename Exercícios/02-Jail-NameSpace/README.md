@@ -125,4 +125,75 @@ sudo unshare --mount --mount-proc=./jail/proc --uts --ipc --net --pid --fork --u
 ## 🧠 Teste: 
 Dentro da jail, use ps aux e verifique que os processos do host não aparecem.
 
+# 🔐 Parte 4 – Criando rede no container
 
+Ao iniciar nosso container com isolamento de rede, nele haverá apenas interface de loopback. para conectá-lo ao mundo externo pela rede, temos que realizar uma ligação interna no kernel de uma interface em nosso host (ou melhor, no namespace atual do nosso linux), com outra interface dentro do namespace do processo do nosso container.
+
+Esse tipo de ligação é realizado com interface do tipo **veth**. Ela funciona como duas "interfaces de rede" com um "cabo de rede" interligando-as diretamente. Mas tudo isso é virtual dentro do kernel.
+
+## Opção 01: Ligação direta do container com o host
+
+![alt text](image.png)
+
+1. Inicialize o jail com namespace de network, observe que tem apenas a interface de **loopback**
+
+Obs. É necessário colocar dentro do `jail` o programa `ip`
+```bash
+sudo unshare -p -f -n --mount-proc=./jail/proc chroot jail
+ip a
+```
+
+2. Em outro terminal, vamos cria a veth pair
+```bash
+ip link add veth-host type veth peer name veth-jail
+```
+Agora temos um par de interfaces:
+
+`veth-host` <==> `veth-jail`
+
+3. Coloca veth-jail no namespace do PID do jail
+
+Busque o PID do processo do jail com `ps aux` coloque-o na variável PID
+
+
+```bash
+PID=139502
+ip link set veth-jail netns $PID
+```
+No terminal do jail, executer `ip  a` e você verá a interface veth_jail lá dentro
+
+4. Configura host
+```bash
+ip addr add 192.168.100.1/24 dev veth-host
+ip link set veth-host up
+```
+
+5. Configura dentro do jail
+```bash
+nsenter -t $PID -n ip addr add 192.168.100.2/24 dev veth-jail
+nsenter -t $PID -n ip link set veth-jail up
+nsenter -t $PID -n ip link set lo up
+```
+
+## Outra opção 02: Ligando o container com uma brigde
+Este modelo é semelhante a network do docker, para cada network criada o docker criar uma bridge, que tem nome de docker0, por padrão ela vem com ip 172.17.0.0/16, igual a figura abaixo.
+
+![alt text](image-2.png)
+
+Para configuração, repita todos os passos passado e depois:
+1. Crie uma bridge
+```bash
+sudo ip link add name br-test type bridge
+sudo ip link set br-test up
+```
+
+2. Adicione a interface do lado do host (veth-ns1) à bridge
+```bash
+sudo ip link set veth-ns1 master br-test
+```
+
+Desta forma, a bridge atua como um switch, permitindo que outros container que estiverem também conectados na bridge se comuniquem.
+
+Lembrando que para isso, retiraremos o IP da interface veth-ns1, e colocamos na interface da Bridge.
+
+![alt text](image-1.png)

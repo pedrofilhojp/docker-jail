@@ -1,0 +1,5 @@
+FROM debian:latest
+RUN echo "Texto" > /file01.txt
+RUN echo "Camada 2" > /file01.txt ; cp /file01.txt /file02.txt
+RUN echo "Camada 3" > /file02.txt
+CMD ["tail","-f","/dev/null"]
