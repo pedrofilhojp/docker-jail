@@ -102,12 +102,13 @@ digite "**exit**"
 exit
 ```
 
-> #### Qual o Problema esta solução? 👀️
+> #### Qual o Problema esta solução?
 >
 > * Precisamos elevar a root no sistema para executar chroot
 > * Mesmo dentro do chroot, não tivemos isolamento de processos
 
 ## Parte 2 – NameSpaces Linux - Isolamento Avançado com unshare
+
 
 ### 2.1 O que é unshare?
 
@@ -116,20 +117,29 @@ O comando unshare permite que você execute processos em namespaces isolados, cr
 Com usuário simples (sem root), **Execute**:
 
 ```bash
-unshare \
+sudo unshare \
   --mount \
   --uts \
   --ipc \
   --pid \
   --fork \
   --user \
-  --net \
   --map-root-user \
   bash -c "
     mount --make-rprivate / &&
     mount -t proc proc /proc &&
     exec bash
   "
+```
+
+sdfsdfsd
+
+
+
+```bash
+sudo unshare -p -f --mount-proc=./jail/proc chroot ./jail
+ou
+sudo unshare --mount --mount-proc=./jail/proc --uts --ipc --net --pid --fork --user --map-root-user chroot ./jail /bin/bash
 ```
 
 **Explicação das opções:**
@@ -143,80 +153,8 @@ unshare \
 - **-r, --map-root-user**: permite agir como root dentro da jail.
 - **-f, --fork**: força o processo a rodar isolado.
 
-> **Atenção**:
+> Teste:
 >
-> - O "**--map-root-user**", esta opção permite que você fique com root dentro do namespace, **mas este não é o root do seu sistema**. É assim que o Docker faz.
-> - Devido ao argumento **--pid** e **--fork**, juntamente com o comando "**mount -t proc proc /proc**" permitiu que o sistema mapeasse uma nova hierarquia de processo dentro do namespace.
+> Dentro da jail, use **ps aux** e verifique que os processos do host não aparecem.
 
-Vamos alguns testes:
-
-Primeiro, observe que no shell, agora termina com "#", indicando que você de fato está root.
-
-Para provar que é root apenas dentro do namespace, execute "**cat /etc/shadow**", observe que não tem acesso.
-
-Agora, execute "**ps aux**", e você vê poucos processos, sendo o PID 1 do comando /bash
-
-```bash
-ps aux
-
-USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
-root           1  1.0  0.0  21484  5888 pts/0    S    11:31   0:00 bash
-root          10  0.0  0.0  22604  3640 pts/0    R+   11:31   0:00 ps aux
-```
-
-Ainda é possível visualizar todos os processos do sistema, basta desmontar o /proc
-
-```bash
-umount /proc
-ps aux 
-
-USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
-nobody         1  0.0  0.0 166500 12068 ?        SNs  10:20   0:01 /sbin/init splash
-nobody         2  0.0  0.0      0     0 ?        S    10:20   0:00 [kthreadd]
-nobody         3  0.0  0.0      0     0 ?        S    10:20   0:00 [pool_workqueue_release]
-nobody         4  0.0  0.0      0     0 ?        I<   10:20   0:00 [kworker/R-rcu_gp]
-nobody         5  0.0  0.0      0     0 ?        I<   10:20   0:00 [kworker/R-sync_wq]
-nobody         6  0.0  0.0      0     0 ?        I<   10:20   0:00 [kworker/R-kvfree_rcu_reclaim]
-...
-...
-
-```
-
-Para sair do **namespace** basta executar o comando:
-
-```bash
-exit
-```
-
-> #### Vamos algumas análises 👀️
->
-> * O chroot sozinho não tras isolamento de processo;
-> * O namespace sozinho não tras isolamento de "diretório";
-> * O namespace mesmo isolando processo, basta desmontar o /proc e lhe permite ver os demais processos do sistema
-
-## Parte 3 - Juntando chroot + namespace
-
-No momento, temos toda uma estrutura de sistema criado na Parte 1 dentro do diretório ./jail. Vamos em 3 passos:
-
-* 1º Criar namespace
-* 2º Montagem do **/proc** em **./jail/proc**
-* 3º Criando o chroot no **./jail**
-
-```bash
-unshare   --mount   --uts   --ipc   --pid   --fork  --net --user   --map-root-user
-mount -t proc proc ./jail/proc
-chroot ./jail
-```
-
-Agora teste o comando ps, tente acessar alguns recursos dentro do nosso "container"... Observe que já estamos contruindo um ambiente mais confinado.
-
-<!--
-<details>
-<summary>Clique para ver o segredo</summary>
-Texto oculto que aparece ao clicar.
-</details>
-
-sudo unshare -p -f --mount-proc=./jail/proc chroot ./jail
-ou
-sudo unshare --mount --mount-proc=./jail/proc --uts --ipc --net --pid --fork --user --map-root-user chroot ./jail /bin/bash
- -->
+## Parte 4. Explorando mais o unshare
