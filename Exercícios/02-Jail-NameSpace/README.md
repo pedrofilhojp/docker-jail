@@ -12,16 +12,18 @@ O propósito é entender como ambientes seguros e isolados podem ser criados sem
 ### 1.1 Crie a estrutura de diretórios da jail:
 
 ```bash
-sudo mkdir -p ./jail/{bin,lib64,lib/x86_64-linux-gnu,dev,etc,home,usr,proc}
+mkdir -p ./jail/{bin,lib64,lib/x86_64-linux-gnu,dev,etc,home,usr,proc}
 ```
 
 ### 1.2 Copie binários essenciais para nosso estudo e suas libs dentro da jail:
 
 ```bash
-sudo cp /bin/bash ./jail/bin/
-sudo cp /bin/ls ./jail/bin/
-sudo cp /bin/cat ./jail/bin/
-sudo cp /usr/bin/ps ./jail/bin/
+which bash
+
+cp /bin/bash ./jail/bin/
+cp /bin/ls ./jail/bin/
+cp /bin/cat ./jail/bin/
+cp /usr/bin/ps ./jail/bin/
 ```
 
 Exemplo com o **bash**, copie as bibliotecas necessárias (verifique com ldd):
@@ -38,8 +40,8 @@ ldd /bin/bash
 Exemplo de cópia:
 
 ```bash
-sudo cp /lib/x86_64-linux-gnu/{libtinfo.so.6,libc.so.6}  ./jail/lib/x86_64-linux-gnu/
-sudo cp /lib64/ld-linux-x86-64.so.2 ./jail/lib64/
+cp /lib/x86_64-linux-gnu/{libtinfo.so.6,libc.so.6}  ./jail/lib/x86_64-linux-gnu/
+cp /lib64/ld-linux-x86-64.so.2 ./jail/lib64/
 ```
 
 ==> Faça o mesmo para o **/bin/ls**, **/bin/cat**, e **/usr/bin/ps**
@@ -47,8 +49,8 @@ sudo cp /lib64/ld-linux-x86-64.so.2 ./jail/lib64/
 ### 1.3 Copie arquivos de configuração mínimos:
 
 ```bash
-sudo cp /etc/passwd ./jail/etc/
-sudo cp /etc/group ./jail/etc/
+cp /etc/passwd ./jail/etc/
+cp /etc/group ./jail/etc/
 ```
 
 ### 1.4 – Acessando o Ambiente com chroot
@@ -148,7 +150,7 @@ unshare \
 > - O "**--map-root-user**", esta opção permite que você fique com root dentro do namespace, **mas este não é o root do seu sistema**. É assim que o Docker faz.
 > - Devido ao argumento **--pid** e **--fork**, juntamente com o comando "**mount -t proc proc /proc**" permitiu que o sistema mapeasse uma nova hierarquia de processo dentro do namespace.
 
-Vamos alguns testes:
+Vamos alguns testes utilizando como referencia o namespace PID:
 
 Primeiro, observe que no shell, agora termina com "#", indicando que você de fato está root.
 
