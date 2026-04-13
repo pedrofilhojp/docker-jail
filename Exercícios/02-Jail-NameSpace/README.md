@@ -180,7 +180,6 @@ nobody         4  0.0  0.0      0     0 ?        I<   10:20   0:00 [kworker/R-rc
 nobody         5  0.0  0.0      0     0 ?        I<   10:20   0:00 [kworker/R-sync_wq]
 nobody         6  0.0  0.0      0     0 ?        I<   10:20   0:00 [kworker/R-kvfree_rcu_reclaim]
 ...
-...
 
 ```
 
@@ -222,3 +221,79 @@ sudo unshare -p -f --mount-proc=./jail/proc chroot ./jail
 ou
 sudo unshare --mount --mount-proc=./jail/proc --uts --ipc --net --pid --fork --user --map-root-user chroot ./jail /bin/bash
  -->
+
+## Parte 4. Explorando mais o unshare (Opcional, mas importante)
+
+### 4.1 – Descobrindo namespaces de um processo
+Todo processo no Linux possui namespaces associados.
+```bash
+ps aux | grep bash
+```
+
+Pegue o PID de um processo (ex: 1234) e rode:
+
+```bash
+ls -l /proc/1234/ns
+mnt:[4026531840]
+pid:[4026531836]
+net:[4026532000]
+uts:[4026531838]
+user:[4026531837]
+ipc:[4026531839]
+```
+Cada número representa um namespace.
+
+### 4.7 – Inspecionando namespaces com lsns
+
+Use:
+```bash
+lsns
+
+        NS TYPE   NPROCS    PID USER  COMMAND
+4026531832 mnt       136   3368 pedro /lib/systemd/systemd --user
+4026531833 net       109   3368 pedro /lib/systemd/systemd --user
+4026531834 time      136   3368 pedro /lib/systemd/systemd --user
+4026531835 cgroup    136   3368 pedro /lib/systemd/systemd --user
+4026531836 pid       109   3368 pedro /lib/systemd/systemd --user
+4026531837 user      109   3368 pedro /lib/systemd/systemd --user
+4026531838 uts       136   3368 pedro /lib/systemd/systemd --user
+4026531839 ipc       136   3368 pedro /lib/systemd/systemd --user
+4026532581 pid         1 141752 pedro /opt/google/chrome/chrome --type=utility -
+...
+```
+Mostra:
+- todos os namespaces do sistema
+- quais processos pertencem a eles
+
+### 4.2 – Entrando em um namespace com **nsenter**
+Em um terminal, crie o namespace com nosso container
+```bash
+unshare   --mount   --uts   --ipc   --pid   --fork  --net --user   --map-root-user
+mount -t proc proc ./jail/proc
+chroot ./jail
+```
+Em outro terminal, descubra o PID desse bash:
+```bash
+ps aux | grep unshare
+```
+Entre no namespace:
+```bash
+sudo nsenter -t <PID> -a /bin/bash
+```
+Agora você está dentro do mesmo ambiente isolado
+
+> Isso equivale ao "docker exec -it <ID do Container> /bin/bash"
+
+### 4.3 – Entrando em namespaces específicos
+
+Você pode entrar em namespaces isoladamente:
+```bash
+sudo nsenter -t <PID> --net bash
+sudo nsenter -t <PID> --pid bash
+sudo nsenter -t <PID> --mount bash
+```
+Isso permite:
+- Entrar só na rede
+- Só no filesystem
+- Só nos processos
+
