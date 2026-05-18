@@ -52,38 +52,45 @@ ip a
 2 - Em outro terminal, vamos cria a veth pair
 
 ```bash
-ip link add veth-host type veth peer name veth-jail
+ip link add veth-host-01 type veth peer name veth-jail-01
 ```
 
 Agora temos um par de interfaces:
 
-- `veth-host` <==> `veth-jail`
+- `veth-host-01` <==> `veth-jail-01`
 
-3 - Coloca veth-jail no namespace do PID do jail
+3 - Coloca veth-jail-01 no namespace do PID do jail
 
 Busque o PID do processo do jail com `ps aux` coloque-o na variável PID
 
 ```bash
 PID=139502
-ip link set veth-jail netns $PID
+ip link set veth-jail-01 netns $PID
 ```
 
-No terminal do jail, executer `ip  a` e você verá a interface veth_jail lá dentro
+No terminal do jail, executer `ip  a` e você verá a interface veth_jail-01 lá dentro
 
 4 - Configura host
 
 ```bash
-ip addr add 192.168.100.1/24 dev veth-host
-ip link set veth-host up
+ip addr add 192.168.100.1/24 dev veth-host-01
+ip link set veth-host-01 up
 ```
 
 5 - Configura dentro do jail
 
 ```bash
-nsenter -t $PID -n ip addr add 192.168.100.2/24 dev veth-jail
-nsenter -t $PID -n ip link set veth-jail up
+nsenter -t $PID -n ip addr add 192.168.100.2/24 dev veth-jail-01
+nsenter -t $PID -n ip link set veth-jail-01 up
 nsenter -t $PID -n ip link set lo up
+
+# ou dentro do container execute...
+
+ip addr add 192.168.100.2/24 dev veth-jail-01
+ip link set veth-jail-01 up
+ip link set lo up
 ```
+
 
 ## Outra opção 02: Ligando o container com uma brigde
 
@@ -98,18 +105,21 @@ Para configuração, repita todos os passos passado e depois:
 
 ```bash
 sudo ip link add name br-test type bridge
-sudo ip link set br-test up
 ```
 
-2 - Adicione a interface do lado do host (veth-ns1) à bridge
+2 - Retirar o ip de (veth-host-01) e adicionar na bridge
 
 ```bash
-sudo ip link set veth-ns1 master br-test
+sudo ip addr del 192.168.100.1/24 dev veth-host-01
+sudo ip link set veth-host-01 master br-test
+
+sudo ip addr add 192.168.100.1/24 dev br-test
+sudo ip link set br-test up
 ```
 
 Desta forma, a bridge atua como um switch, permitindo que outros container que estiverem também conectados na bridge se comuniquem.
 
-Lembrando que para isso, retiraremos o IP da interface veth-ns1, e colocamos na interface da Bridge.
+Lembrando que para isso, retiraremos o IP da interface  veth-host-01, e colocamos na interface da Bridge.
 
 <p align="center">
   <img src="image-1.png" alt="Diagrama de comunicação 2 containers na bridge" width="300">
@@ -125,9 +135,12 @@ sudo sysctl -w net.bridge.bridge-nf-call-ip6tables=0
 sudo sysctl -w net.bridge.bridge-nf-call-arptables=0
 ```
 
+<!--
+<details>
 ### 1.4 Crie dispositivos básicos:
 
 ```bash
 sudo mknod -m 666 ./jail/dev/null c 1 3
 sudo mknod -m 666 ./jail/dev/zero c 1 5
 ```
+ -->
