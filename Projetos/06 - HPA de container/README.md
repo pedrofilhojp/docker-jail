@@ -6,7 +6,7 @@ Desenvolvimento de um sistema de autoscaling horizontal para containers Docker, 
 
 ---
 
-# Objetivo do Projeto (Versão Melhorada)
+# Objetivo do Projeto
 
 O objetivo deste projeto é desenvolver uma solução automatizada capaz de monitorar o consumo de recursos de containers Docker e realizar escalabilidade horizontal automática baseada em métricas de utilização de CPU e memória.
 
@@ -14,7 +14,14 @@ A aplicação deverá atuar de forma semelhante ao HPA (Horizontal Pod Autoscale
 
 Os containers que poderão sofrer escalabilidade deverão ser identificados através de labels (tags) Docker, como por exemplo:
 
-<pre class="overflow-visible! px-0!" data-start="946" data-end="1068"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>autoscale.enable=true</span><br/><span>autoscale.min=1</span><br/><span>autoscale.max=5</span><br/><span>autoscale.cpu=70</span><br/><span>autoscale.memory=80</span><br/><span>app=fin</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+```yaml
+autoscale.enable=true
+autoscale.min=1
+autoscale.max=5
+autoscale.cpu=70
+autoscale.memory=80
+app=fin
+```
 
 Com base nessas informações, o sistema deverá:
 
@@ -83,7 +90,15 @@ O projeto deverá obrigatoriamente:
 
 Os containers elegíveis poderão possuir:
 
-<pre class="overflow-visible! px-0!" data-start="2911" data-end="3065"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute inset-x-4 top-12 bottom-4"><div class="pointer-events-none sticky z-40 shrink-0 z-1!"><div class="sticky bg-token-border-light"></div></div></div><div class="relative"><div class=""><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>labels:</span><br/><span>  - autoscale.enable=true</span><br/><span>  - autoscale.min=1</span><br/><span>  - autoscale.max=5</span><br/><span>  - autoscale.cpu=70</span><br/><span>  - autoscale.memory=80</span><br/><span>  - app=fin</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+```yaml
+labels:
+  - autoscale.enable=true
+  - autoscale.min=1
+  - autoscale.max=5
+  - autoscale.cpu=70
+  - autoscale.memory=80
+  - app=fin
+```
 
 ---
 
@@ -93,15 +108,15 @@ Os containers elegíveis poderão possuir:
 
 Container:
 
-<pre class="overflow-visible! px-0!" data-start="3140" data-end="3173"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>fin-app-1</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+* fin-app-1
 
 CPU:
 
-<pre class="overflow-visible! px-0!" data-start="3180" data-end="3207"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>85%</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+* 85%
 
 Threshold:
 
-<pre class="overflow-visible! px-0!" data-start="3220" data-end="3247"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>70%</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+* 70%
 
 ---
 
@@ -111,8 +126,7 @@ O sistema deverá:
 
 * detectar sobrecarga;
 * criar nova réplica:
-
-<pre class="overflow-visible! px-0!" data-start="3340" data-end="3373"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>fin-app-2</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+  * fin-app-2
 
 ---
 
@@ -120,7 +134,7 @@ O sistema deverá:
 
 Carga reduzida:
 
-<pre class="overflow-visible! px-0!" data-start="3418" data-end="3445"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>25%</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+* 25%
 
 O sistema poderá:
 
@@ -135,7 +149,9 @@ O sistema poderá:
 
 Uma das principais sugestões é utilizar o Docker Socket:
 
-<pre class="overflow-visible! px-0!" data-start="3663" data-end="3707"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>/var/run/docker.sock</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+```text
+/var/run/docker.sock
+```
 
 permitindo comunicação direta com o Docker Engine.
 
@@ -143,13 +159,10 @@ permitindo comunicação direta com o Docker Engine.
 
 # Exemplo de montagem do Docker Socket
 
-<pre class="overflow-visible! px-0!" data-start="3806" data-end="3884"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute inset-x-4 top-12 bottom-4"><div class="pointer-events-none sticky z-40 shrink-0 z-1!"><div class="sticky bg-token-border-light"></div></div></div><div class="relative"><div class=""><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>volumes:</span><br/><span>  - /var/run/docker.sock:/var/run/docker.sock</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
-
----
-
-# Sugestão de Arquitetura
-
-<pre class="overflow-visible! px-0!" data-start="3918" data-end="4567"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>+----------------------------------+</span><br/><span>| Container HPA Controller         |</span><br/><span>|----------------------------------|</span><br/><span>| Metrics Collector                |</span><br/><span>| Scaling Engine                   |</span><br/><span>| Docker API Client                |</span><br/><span>+----------------+-----------------+</span><br/><span>                 |</span><br/><span>                 | docker.sock</span><br/><span>                 v</span><br/><span>+----------------------------------+</span><br/><span>| Docker Engine                    |</span><br/><span>+----------------------------------+</span><br/><span>                 |</span><br/><span>      +----------+----------+</span><br/><span>      |                     |</span><br/><span>+------------+       +------------+</span><br/><span>| fin-app-1  |       | fin-app-2  |</span><br/><span>+------------+       +------------+</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+```yaml
+volumes:
+  - /var/run/docker.sock:/var/run/docker.sock
+```
 
 ---
 
@@ -159,19 +172,23 @@ permitindo comunicação direta com o Docker Engine.
 
 Os alunos poderão utilizar:
 
-<pre class="overflow-visible! px-0!" data-start="4700" data-end="4736"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute inset-x-4 top-12 bottom-4"><div class="pointer-events-none sticky z-40 shrink-0 z-1!"><div class="sticky bg-token-border-light"></div></div></div><div class="relative"><div class=""><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>docker stats</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+```text
+docker stats
+```
 
 Exemplo:
 
-<pre class="overflow-visible! px-0!" data-start="4747" data-end="4795"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute inset-x-4 top-12 bottom-4"><div class="pointer-events-none sticky z-40 shrink-0 z-1!"><div class="sticky bg-token-border-light"></div></div></div><div class="relative"><div class=""><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>docker stats </span><span class="ͼ12">--no-stream</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
-
----
+```text
+docker stats --no-stream
+```
 
 ## Opção 2 — Docker API (Recomendado)
 
 Consultar métricas diretamente via API Docker utilizando:
 
-<pre class="overflow-visible! px-0!" data-start="4899" data-end="4945"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>/containers/{id}/stats</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+```text
+/containers/{id}/stats
+```
 
 ---
 
@@ -191,7 +208,13 @@ A API poderá fornecer:
 
 # Exemplo Simplificado de Métrica
 
-<pre class="overflow-visible! px-0!" data-start="5146" data-end="5248"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute inset-x-4 top-12 bottom-4"><div class="pointer-events-none sticky z-40 shrink-0 z-1!"><div class="sticky bg-token-border-light"></div></div></div><div class="relative"><div class=""><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>{</span><br/><span>  "memory_usage": </span><span class="ͼz">"512MB"</span><span>,</span><br/><span>  "memory_limit": </span><span class="ͼz">"1GB"</span><span>,</span><br/><span>  "cpu_percent": </span><span class="ͼz">"82%"</span><br/><span>}</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+```json
+{
+  "memory_usage": "512MB",
+  "memory_limit": "1GB",
+  "cpu_percent": "82%"
+}
+```
 
 ---
 
@@ -201,11 +224,11 @@ A API poderá fornecer:
 
 Criar novos containers quando:
 
-<pre class="overflow-visible! px-0!" data-start="5326" data-end="5359"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>CPU > 70%</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+* CPU > 70%
 
 ou:
 
-<pre class="overflow-visible! px-0!" data-start="5365" data-end="5398"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>MEM > 80%</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+* MEM > 80%
 
 ---
 
@@ -213,7 +236,7 @@ ou:
 
 Remover containers quando:
 
-<pre class="overflow-visible! px-0!" data-start="5445" data-end="5478"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>CPU < 20%</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
+* CPU < 20%
 
 durante determinado período.
 
@@ -310,9 +333,18 @@ Aguardar:
 
 # Sugestão de Estrutura do Projeto
 
-<pre class="overflow-visible! px-0!" data-start="6700" data-end="6848"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>project/</span><br/><span>├── autoscaler/</span><br/><span>├── metrics/</span><br/><span>├── scaling/</span><br/><span>├── logs/</span><br/><span>├── config/</span><br/><span>├── database/</span><br/><span>├── docker/</span><br/><span>├── main.py</span><br/><span>└── README.md</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
-
----
+```text
+project/
+├── autoscaler/
+├── metrics/
+├── scaling/
+├── logs/
+├── config/
+├── database/
+├── docker/
+├── main.py
+└── README.md
+```
 
 # Modelo de Avaliação
 
@@ -337,8 +369,6 @@ Aguardar:
 
 Disponibilizado em repositório Git.
 
----
-
 ### 2. README.md contendo
 
 * arquitetura da solução;
@@ -347,22 +377,12 @@ Disponibilizado em repositório Git.
 * estratégia de coleta de métricas;
 * instruções de execução.
 
----
+e também:
 
-### 3. Relatório técnico
-
-Deve conter:
-
-* funcionamento do HPA;
-* métricas utilizadas;
-* política de scaling;
-* integração com Docker;
 * dificuldades encontradas;
 * aprendizados obtidos.
 
----
-
-### 4. Vídeo demonstrativo
+### 3. Vídeo demonstrativo
 
 Entre 5 e 15 minutos contendo:
 
@@ -371,48 +391,6 @@ Entre 5 e 15 minutos contendo:
 * redução de carga;
 * remoção automática de réplicas;
 * exibição das métricas.
-
----
-
-# Sugestões de Avaliação Prática
-
-Durante a apresentação, o professor poderá solicitar:
-
-* geração artificial de carga;
-* demonstração do scale out;
-* demonstração do scale in;
-* exibição das métricas;
-* explicação da política de scaling;
-* integração com balanceador;
-* demonstração dos thresholds.
-
----
-
-# Perguntas Sobre o Projeto
-
-1. O que é autoscaling horizontal?
-2. Qual a diferença entre scaling horizontal e vertical?
-3. Como o HPA do **Kubernetes** funciona?
-4. Como obter métricas de CPU e memória no Docker?
-5. Qual a função do:
-
-<pre class="overflow-visible! px-0!" data-start="8382" data-end="8426"><div class="relative w-full mt-4 mb-1"><div class=""><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼs ͼ16"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>/var/run/docker.sock</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></pre>
-
-6. Quais riscos existem ao utilizar docker.sock?
-7. Como evitar scaling excessivo?
-8. O que é cooldown em autoscaling?
-9. O que é histerese em sistemas de scaling?
-10. Como balanceadores de carga trabalham junto com autoscaling?
-11. Como detectar containers saudáveis?
-12. O que acontece se novas réplicas forem criadas rapidamente demais?
-13. Como implementar scale in com segurança?
-14. Qual a importância da observabilidade em autoscaling?
-15. Como plataformas modernas evitam flapping de scaling?
-16. Como seria possível implementar autoscaling preditivo?
-17. Qual a relação entre este projeto e cloud computing?
-18. Como o autoscaling impacta custos e disponibilidade?
-
----
 
 # Sugestões de Expansão do Projeto
 

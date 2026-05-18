@@ -8,7 +8,7 @@ Construção de uma ferramenta capaz de analisar imagens de containers e represe
 
 O objetivo deste projeto é desenvolver uma aplicação capaz de analisar imagens Docker e identificar as camadas (layers) utilizadas na construção do sistema de arquivos em camadas empregado pelos containers modernos.
 
-A aplicação deverá interpretar a estrutura das imagens, identificar suas dependências e construir um grafo representando a relação entre as camadas compartilhadas entre diferentes imagens.
+A aplicação deverá interpretar a estrutura das imagens, identificar suas dependências e construir um grafo e/ou tabela representando a relação entre as camadas compartilhadas entre diferentes imagens.
 
 O projeto busca explorar conceitos fundamentais relacionados a:
 
@@ -50,7 +50,7 @@ O projeto deverá obrigatoriamente:
 
 1. Analisar imagens Docker locais;
 2. Identificar as camadas utilizadas por cada imagem;
-3. Construir um grafo representando as relações entre layers;
+3. Construir um grafo e/ou tabela representando as relações entre layers;
 4. Exibir compartilhamento de camadas entre imagens;
 5. Permitir análise de múltiplas imagens;
 6. Identificar imagem base e camadas derivadas;
@@ -182,14 +182,14 @@ project/
 Representa:
 
 * Qual layer depende de qual.
-![alt text](image.png)
+  ![alt text](image.png)
 
 ## Grafo por compartilhamento
 
 Representa:
 
 * Quais imagens compartilham layers.
-![alt text](image-1.png)
+  ![alt text](image-1.png)
 
 ## Grafo por consumo
 
@@ -197,7 +197,7 @@ Representa:
 
 * tamanho acumulado;
 * impacto de armazenamento.
-![alt text](image-2.png)
+  ![alt text](image-2.png)
 
 # Sugestões de Análises Interessantes
 
@@ -261,7 +261,6 @@ Entre 5 e 15 minutos contendo:
 * análise de imagens;
 * construção do grafo;
 * interpretação dos resultados.
-
 
 # Sugestões de Expansão do Projeto (Opcional)
 
