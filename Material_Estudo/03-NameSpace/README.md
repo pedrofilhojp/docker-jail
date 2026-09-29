@@ -7,9 +7,9 @@ O propósito é entender como ambientes seguros e isolados podem ser criados sem
 
 ---
 
-## Parte 1 – NameSpaces Linux - Isolamento Avançado com unshare
+# Parte 1 – NameSpaces Linux - Isolamento Avançado com unshare
 
-### 1.1 O que é unshare?
+## 1.1 O que é unshare?
 
 O comando unshare permite que você execute processos em namespaces isolados, criando ambientes com visibilidade limitada de processos, rede, montagem, etc. É uma tecnologia base para containers.
 
@@ -48,7 +48,7 @@ unshare \
 > - O "**--map-root-user**", esta opção permite que você fique com root dentro do namespace, **mas este não é o root do seu sistema**. É assim que o Docker faz.
 > - Devido ao argumento **--pid** e **--fork**, juntamente com o comando "**mount -t proc proc /proc**" permitiu que o sistema mapeasse uma nova hierarquia de processo dentro do namespace.
 
-Vamos alguns testes utilizando como referencia o namespace PID:
+### 1.1.1 - Vamos realizar alguns testes utilizando como referencia o namespace PID:
 
 Primeiro, observe que no shell, agora termina com "#", indicando que você de fato está root.
 
@@ -93,7 +93,7 @@ exit
 > * O namespace sozinho não tras isolamento de "diretório";
 > * O namespace mesmo isolando processo, basta desmontar o /proc e lhe permite ver os demais processos do sistema
 
-## Parte 2 - Juntando chroot + namespace
+# Parte 2 - Juntando chroot + namespace
 
 No momento, temos toda uma estrutura de sistema criado na sesão anterior dentro do diretório ./jail. Vamos em 3 passos:
 
@@ -102,8 +102,17 @@ No momento, temos toda uma estrutura de sistema criado na sesão anterior dentro
 * 3º Criando o chroot no **./jail**
 
 ```bash
-unshare   --mount   --uts   --ipc   --pid   --fork  --net --user   --map-root-user
+unshare --mount \
+        --uts \
+        --ipc \
+        --pid \
+        --fork \
+        --net \
+        --user \
+        --map-root-user
+
 mount -t proc proc ./jail/proc
+
 chroot ./jail
 ```
 
@@ -120,9 +129,9 @@ ou
 sudo unshare --mount --mount-proc=./jail/proc --uts --ipc --net --pid --fork --user --map-root-user chroot ./jail /bin/bash
  -->
 
-## Parte 3. Explorando mais o unshare (Opcional, mas importante)
+# Parte 3. Explorando mais o unshare (Opcional, mas importante)
 
-### 3.1 – Descobrindo namespaces de um processo
+## 3.1 – Descobrindo namespaces de um processo
 Todo processo no Linux possui namespaces associados.
 ```bash
 ps aux | grep bash
@@ -166,8 +175,17 @@ Mostra:
 ### 3.2 – Entrando em um namespace com **nsenter**
 Em um terminal, crie o namespace com nosso container
 ```bash
-unshare   --mount   --uts   --ipc   --pid   --fork  --net --user   --map-root-user
+unshare   --mount \
+          --uts \
+          --ipc \
+          --pid \
+          --fork \
+          --net \
+          --user \
+          --map-root-user
+
 mount -t proc proc ./jail/proc
+
 chroot ./jail
 ```
 Em outro terminal, descubra o PID desse bash:

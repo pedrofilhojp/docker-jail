@@ -1,6 +1,9 @@
 # Criando rede no container
 
-Antes de tudo, precisamos colocar dentro de nosso ./jail o binário "ip". Desta forma podemos analisar o endereço ip dentro do container.
+Antes de tudo, precisamos colocar dentro de nosso ./jail o binário "ip" para acessar a stack de network.
+
+> ### Outra opção:
+> Utilizar a estrutura base de nosso container que baixamos com o aplicativo "bootstrap". Desta forma, dentro do container, basta instalar o pacote `iproute2` (para o comando ip), ou o `net-tools` (para o ifconfig)
 
 ```bash
 cp /usr/sbin/ip ./jail/sbin/
@@ -8,31 +11,29 @@ ldd /usr/sbin/ip
 	linux-vdso.so.1 (0x000075cb54060000)
 	libbpf.so.0 => /lib/x86_64-linux-gnu/libbpf.so.0 (0x000075cb53ef3000)
 	libelf.so.1 => /lib/x86_64-linux-gnu/libelf.so.1 (0x000075cb53ed5000)
-	libmnl.so.0 => /lib/x86_64-linux-gnu/libmnl.so.0 (0x000075cb53ecd000)
-	libbsd.so.0 => /lib/x86_64-linux-gnu/libbsd.so.0 (0x000075cb53eb5000)
-	libcap.so.2 => /lib/x86_64-linux-gnu/libcap.so.2 (0x000075cb53eaa000)
-	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x000075cb53c00000)
-	libz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x000075cb53e8c000)
-	/lib64/ld-linux-x86-64.so.2 (0x000075cb54062000)
-	libmd.so.0 => /lib/x86_64-linux-gnu/libmd.so.0 (0x000075cb53e7f000)
+	...
 
  cp /lib/x86_64-linux-gnu/{libbpf.so.0,libelf.so.1,libmnl.so.0,libbsd.so.0,libcap.so.2} ./jail//lib/x86_64-linux-gnu/
- cp /lib/x86_64-linux-gnu/{libc.so.6,libz.so.1} ./jail/lib/x86_64-linux-gnu/
- cp /lib/x86_64-linux-gnu/libmd.so.0 ./jail/lib/x86_64-linux-gnu/libmd.so.0
+ ...
 ```
 
 Agora vamos iniciar nosso container, não esqueca de utilizar o namespace **--net** para isolamento de rede
 
 ```bash
-unshare   --mount   --uts   --ipc   --pid   --fork  --user --net --map-root-user   bash -c "
-    mount -t proc proc ./jail/proc &&
-    chroot ./jail
-  "
+unshare   	--mount
+			--uts \
+			--ipc \
+			--pid \
+			--fork \
+			--user \
+			--net \
+			--map-root-user \
+	bash -c " mount -t proc proc ./jail/proc && chroot ./jail "
 ```
 
 Ao iniciar nosso container com isolamento de rede, nele haverá apenas interface de loopback. para conectá-lo ao mundo externo pela rede, temos que realizar uma ligação interna no kernel de uma interface em nosso host (ou melhor, no namespace atual do nosso linux), com outra interface dentro do namespace do processo do nosso container.
 
-Esse tipo de ligação é realizado com interface do tipo **veth**. Ela funciona como duas "interfaces de rede" com um "cabo de rede" interligando-as diretamente. Mas tudo isso é virtual dentro do kernel.
+Esse tipo de ligação é realizado com interface do tipo **veth**. Ela funciona como duas "interfaces de rede" com uma "interligação interna" conectando-as diretamente. Mas tudo isso é virtual dentro do kernel.
 
 ## Opção 01: Ligação direta do container com o host
 
@@ -45,7 +46,8 @@ Esse tipo de ligação é realizado com interface do tipo **veth**. Ela funciona
 Obs. É necessário colocar dentro do `jail` o programa `ip`
 
 ```bash
-sudo unshare -p -f -n --mount-proc=./jail/proc chroot jail
+sudo unshare -p -f -n -m chroot jail /bin/bash -c "mount -t proc proc /proc && exec /bin/bash"
+
 ip a
 ```
 
@@ -59,7 +61,7 @@ Agora temos um par de interfaces:
 
 - `veth-host-01` <==> `veth-jail-01`
 
-3 - Coloca veth-jail-01 no namespace do PID do jail
+3 - Coloca `veth-jail-01` no namespace do PID do jail
 
 Busque o PID do processo do jail com `ps aux` coloque-o na variável PID
 
@@ -94,13 +96,15 @@ ip link set lo up
 
 ## Outra opção 02: Ligando o container com uma brigde
 
-Este modelo é semelhante a network do docker, para cada network criada o docker criar uma bridge, que tem nome de docker0, por padrão ela vem com ip 172.17.0.0/16, igual a figura abaixo.
+Para cada network criada, o docker criar uma bridge, que tem nome de docker0, por padrão ela vem com ip 172.17.0.0/16, igual a figura abaixo.
+> Isto é o equivalente a network de driver `bridge` do Docker
 
 <p align="center">
   <img src="image-2.png" alt="Diagrama de comunicação container bridge" width="300">
 </p>
 
 Para configuração, repita todos os passos passado e depois:
+
 1 - Crie uma bridge
 
 ```bash

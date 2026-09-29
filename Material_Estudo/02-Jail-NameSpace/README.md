@@ -135,7 +135,7 @@ exit
 
 # Parte 3 -  Importar a estrutura para o seu motor de contêiner
 
-Agora que a árvore do FHS está baixada dentro da pasta ./jail, ou no ./debian-rootfs, você pode compactar e importar essa estrutura diretamente como uma nova imagem de contêiner.
+Agora que a árvore do FHS está criada dentro da pasta ./jail, ou baixada no ./debian-rootfs, você pode compactar e importar essa estrutura diretamente como uma nova imagem de contêiner.
 
 ## 3.1. Se estiver utilizando o Docker:
 Compacte e envie diretamente para o gerenciador com o comando docker import:
