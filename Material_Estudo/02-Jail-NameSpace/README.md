@@ -2,20 +2,22 @@
 
 ## Objetivo
 
-Neste exercício, o aluno irá criar um ambiente isolado (**jail**) utilizando o comando `chroot`, complementando com técnicas avançadas de isolamento usando `unshare` (namespaces) e `seccomp` (filtro de chamadas de sistema).
+Neste exercício, o aluno irá criar um ambiente isolado (**jail**) utilizando o comando `chroot`. Em sesões posteriores, usaremos com técnicas avançadas de isolamento usando `unshare` (namespaces) e `seccomp` (filtro de chamadas de sistema).
 O propósito é entender como ambientes seguros e isolados podem ser criados sem uso de virtualização completa.
 
 ---
 
-## Parte 1 – Criando o Ambiente da Jail com `chroot`
+# Parte 1 – Preparando o Ambiente para criar Jail com `chroot`
 
-### 1.1 Crie a estrutura de diretórios da jail:
+## 1.1 Processo manual 
+
+### 1.1.1 Crie a estrutura de diretórios da jail:
 
 ```bash
 mkdir -p ./jail/{bin,lib64,lib/x86_64-linux-gnu,dev,etc,home,usr,proc}
 ```
 
-### 1.2 Copie binários essenciais para nosso estudo e suas libs dentro da jail:
+### 1.1.2 Copie binários essenciais para nosso estudo e suas libs dentro da jail:
 
 ```bash
 which bash
@@ -25,8 +27,7 @@ cp /bin/ls ./jail/bin/
 cp /bin/cat ./jail/bin/
 cp /usr/bin/ps ./jail/bin/
 ```
-
-Exemplo com o **bash**, copie as bibliotecas necessárias (verifique com ldd):
+Ao execuar algum comando no linux, há bibliotecas que são utilizadas pelos processos, estas bibliotecas são armazenadas normalmente nos diretório /lib ou /lib64. A seguir, um exemplo com o binário **bash**, identifique as bibliotecas que ele usa com ldd e copie-as para o diretório equivalente dentro do `jail`:
 
 ```bash
 ldd /bin/bash
@@ -46,18 +47,18 @@ cp /lib64/ld-linux-x86-64.so.2 ./jail/lib64/
 
 ==> Faça o mesmo para o **/bin/ls**, **/bin/cat**, e **/usr/bin/ps**
 
-### 1.3 Copie arquivos de configuração mínimos:
+### 1.1.3 Copie arquivos de configuração mínimos:
 
 ```bash
 cp /etc/passwd ./jail/etc/
 cp /etc/group ./jail/etc/
 ```
 
-### 1.4 – Acessando o Ambiente com chroot
+### 1.1.4 – Acessando o Ambiente com chroot
 
 ```bash
 sudo chroot ./jail
-ou
+# ou
 sudo chroot ./jail /bin/bash
 ```
 
@@ -65,7 +66,31 @@ Dentro da jail, execute comandos como "ls" e "cat /etc/passwd" para testar o amb
 
 Tente também executar o "cd ../../../" e perceba que não sai de dentro do "jail"
 
-#### 1.4.1 **Comando "ps aux"**
+## 1.2 Utilizando o bootstrap do Debian
+Se você estiver utilizando uma distribuição baseada em Debian ou Ubuntu, instale o pacote necessário executando:
+
+```bash
+sudo apt update && sudo apt install -y debootstrap
+```
+
+Use o comando debootstrap com a flag --variant=minbase. Essa variação garante uma instalação minimalista ideal para contêineres, contendo apenas o apt e pacotes vitais.
+
+```bash
+# Cria o diretório para receber a estrutura
+mkdir debian-rootfs
+
+# Baixa a estrutura básica do Debian FHS
+sudo debootstrap --variant=minbase bookworm ./debian-rootfs http://deb.debian.org/debian/
+```
+
+Para deixar a imagem do contêiner o menor possível, você pode remover arquivos temporários de download armazenados no cache da pasta criada
+
+```bash
+sudo rm -rf ./debian-rootfs/var/cache/apt/archives/*.deb
+sudo rm -rf ./debian-rootfs/var/lib/apt/lists/*
+```
+
+# Parte 2 - **Comando "ps aux"**
 
 Observe que todos os processos estão sendo exibidos. Não há isolamento dos processo do sistema com o chroot
 
@@ -89,14 +114,13 @@ Quando você usa `chroot`:
   ├── ...
 ```
 
-dsfsd
 
 Então, dentro do shell:
 
 * `/bin` → na verdade é`/jail/bin`
 * `/etc` →`/jail/etc
 
-### 1.5 Sair da jail
+### 1.6 Sair da jail
 
 digite "**exit**"
 
@@ -109,191 +133,18 @@ exit
 > * Precisamos elevar a root no sistema para executar chroot
 > * Mesmo dentro do chroot, não tivemos isolamento de processos
 
-## Parte 2 – NameSpaces Linux - Isolamento Avançado com unshare
+# Parte 3 -  Importar a estrutura para o seu motor de contêiner
 
-### 2.1 O que é unshare?
+Agora que a árvore do FHS está baixada dentro da pasta ./jail, ou no ./debian-rootfs, você pode compactar e importar essa estrutura diretamente como uma nova imagem de contêiner.
 
-O comando unshare permite que você execute processos em namespaces isolados, criando ambientes com visibilidade limitada de processos, rede, montagem, etc. É uma tecnologia base para containers.
-
-Com usuário simples (sem root), **Execute**:
-
+## 3.1. Se estiver utilizando o Docker:
+Compacte e envie diretamente para o gerenciador com o comando docker import:
 ```bash
-unshare \
-  --mount \
-  --uts \
-  --ipc \
-  --pid \
-  --fork \
-  --user \
-  --net \
-  --map-root-user \
-  bash -c "
-    mount --make-rprivate / &&
-    mount -t proc proc /proc &&
-    exec bash
-  "
+sudo tar -C debian-rootfs -c . | docker import - debian-custom:minimal
 ```
 
-**Explicação das opções:**
-
-- **-m, --mount**: isola pontos de montagem.
-- **-u, --uts**: isola nome do host (hostname).
-- **-i, --ipc**: isola comunicação entre processos.
-- **-n, --net**: isola a rede.
-- **-p, --pid**: isola processos.
-- **-U, --user**: cria novo namespace de usuários.
-- **-r, --map-root-user**: permite agir como root dentro da jail.
-- **-f, --fork**: força o processo a rodar isolado.
-
-> **Atenção**:
->
-> - O "**--map-root-user**", esta opção permite que você fique com root dentro do namespace, **mas este não é o root do seu sistema**. É assim que o Docker faz.
-> - Devido ao argumento **--pid** e **--fork**, juntamente com o comando "**mount -t proc proc /proc**" permitiu que o sistema mapeasse uma nova hierarquia de processo dentro do namespace.
-
-Vamos alguns testes utilizando como referencia o namespace PID:
-
-Primeiro, observe que no shell, agora termina com "#", indicando que você de fato está root.
-
-Para provar que é root apenas dentro do namespace, execute "**cat /etc/shadow**", observe que não tem acesso.
-
-Agora, execute "**ps aux**", e você vê poucos processos, sendo o PID 1 do comando /bash
-
+## 3.2. Se estiver utilizando ferramentas OCI mais baixas (como runc ou podman):
+Você pode testar rodando diretamente a partir do diretório usando o Podman:
 ```bash
-ps aux
-
-USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
-root           1  1.0  0.0  21484  5888 pts/0    S    11:31   0:00 bash
-root          10  0.0  0.0  22604  3640 pts/0    R+   11:31   0:00 ps aux
+podman run --rm --rootfs ./debian-rootfs /bin/sh -c 'cat /etc/os-release'
 ```
-
-Ainda é possível visualizar todos os processos do sistema, basta desmontar o /proc
-
-```bash
-umount /proc
-ps aux 
-
-USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
-nobody         1  0.0  0.0 166500 12068 ?        SNs  10:20   0:01 /sbin/init splash
-nobody         2  0.0  0.0      0     0 ?        S    10:20   0:00 [kthreadd]
-nobody         3  0.0  0.0      0     0 ?        S    10:20   0:00 [pool_workqueue_release]
-nobody         4  0.0  0.0      0     0 ?        I<   10:20   0:00 [kworker/R-rcu_gp]
-nobody         5  0.0  0.0      0     0 ?        I<   10:20   0:00 [kworker/R-sync_wq]
-nobody         6  0.0  0.0      0     0 ?        I<   10:20   0:00 [kworker/R-kvfree_rcu_reclaim]
-...
-
-```
-
-Para sair do **namespace** basta executar o comando:
-
-```bash
-exit
-```
-
-> #### Vamos algumas análises 👀️
->
-> * O chroot sozinho não tras isolamento de processo;
-> * O namespace sozinho não tras isolamento de "diretório";
-> * O namespace mesmo isolando processo, basta desmontar o /proc e lhe permite ver os demais processos do sistema
-
-## Parte 3 - Juntando chroot + namespace
-
-No momento, temos toda uma estrutura de sistema criado na Parte 1 dentro do diretório ./jail. Vamos em 3 passos:
-
-* 1º Criar namespace
-* 2º Montagem do **/proc** em **./jail/proc**
-* 3º Criando o chroot no **./jail**
-
-```bash
-unshare   --mount   --uts   --ipc   --pid   --fork  --net --user   --map-root-user
-mount -t proc proc ./jail/proc
-chroot ./jail
-```
-
-Agora teste o comando ps, tente acessar alguns recursos dentro do nosso "container"... Observe que já estamos contruindo um ambiente mais confinado.
-
-<!--
-<details>
-<summary>Clique para ver o segredo</summary>
-Texto oculto que aparece ao clicar.
-</details>
-
-sudo unshare -p -f --mount-proc=./jail/proc chroot ./jail
-ou
-sudo unshare --mount --mount-proc=./jail/proc --uts --ipc --net --pid --fork --user --map-root-user chroot ./jail /bin/bash
- -->
-
-## Parte 4. Explorando mais o unshare (Opcional, mas importante)
-
-### 4.1 – Descobrindo namespaces de um processo
-Todo processo no Linux possui namespaces associados.
-```bash
-ps aux | grep bash
-```
-
-Pegue o PID de um processo (ex: 1234) e rode:
-
-```bash
-ls -l /proc/1234/ns
-mnt:[4026531840]
-pid:[4026531836]
-net:[4026532000]
-uts:[4026531838]
-user:[4026531837]
-ipc:[4026531839]
-```
-Cada número representa um namespace.
-
-### 4.7 – Inspecionando namespaces com lsns
-
-Use:
-```bash
-lsns
-
-        NS TYPE   NPROCS    PID USER  COMMAND
-4026531832 mnt       136   3368 pedro /lib/systemd/systemd --user
-4026531833 net       109   3368 pedro /lib/systemd/systemd --user
-4026531834 time      136   3368 pedro /lib/systemd/systemd --user
-4026531835 cgroup    136   3368 pedro /lib/systemd/systemd --user
-4026531836 pid       109   3368 pedro /lib/systemd/systemd --user
-4026531837 user      109   3368 pedro /lib/systemd/systemd --user
-4026531838 uts       136   3368 pedro /lib/systemd/systemd --user
-4026531839 ipc       136   3368 pedro /lib/systemd/systemd --user
-4026532581 pid         1 141752 pedro /opt/google/chrome/chrome --type=utility -
-...
-```
-Mostra:
-- todos os namespaces do sistema
-- quais processos pertencem a eles
-
-### 4.2 – Entrando em um namespace com **nsenter**
-Em um terminal, crie o namespace com nosso container
-```bash
-unshare   --mount   --uts   --ipc   --pid   --fork  --net --user   --map-root-user
-mount -t proc proc ./jail/proc
-chroot ./jail
-```
-Em outro terminal, descubra o PID desse bash:
-```bash
-ps aux | grep unshare
-```
-Entre no namespace:
-```bash
-sudo nsenter -t <PID> -a /bin/bash
-```
-Agora você está dentro do mesmo ambiente isolado
-
-> Isso equivale ao "docker exec -it <ID do Container> /bin/bash"
-
-### 4.3 – Entrando em namespaces específicos
-
-Você pode entrar em namespaces isoladamente:
-```bash
-sudo nsenter -t <PID> --net bash
-sudo nsenter -t <PID> --pid bash
-sudo nsenter -t <PID> --mount bash
-```
-Isso permite:
-- Entrar só na rede
-- Só no filesystem
-- Só nos processos
-
